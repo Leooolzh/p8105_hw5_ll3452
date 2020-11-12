@@ -1,0 +1,73 @@
+---
+title: "Homework 5"
+author: Leo Liu
+output: github_document
+---
+
+```{r}
+library(tidyverse)
+library(purrr)
+```
+
+
+# Question 1
+
+```{r}
+library(xml2)
+
+homicide_df = read_csv("homicide-data.csv") %>% 
+  mutate(
+    city_state = str_c(city, state, sep = "_"),
+    resolved = case_when(
+      disposition == "Closed without arrest" ~ "unsolved",
+      disposition == "Open/No arrest"        ~ "unsolved",
+      disposition == "Closed by arrest"      ~ "solved"
+    )
+  ) %>% 
+  select(city_state, resolved) %>% 
+  filter(city_state != "Tulsa_AL")
+```
+
+```{r}
+homicide_df %>% 
+  group_by(city_state) %>% 
+  summarize(
+    hom_total = n(),
+    hom_unsolved = sum(resolved == "unsolved")
+  )
+```
+
+
+# Question 2
+
+```{r}
+files = dir(pattern = "*.csv")
+files
+```
+
+
+```{r}
+df2 = list.files(pattern = "*.csv") %>% 
+  set_names(.) %>% 
+  map_df(read_csv, .id = "file.ID")
+
+df2 = df2 %>% 
+  janitor::clean_names() %>% 
+  separate(file_id,
+           into = c("arm","id"),
+           sep = "_") %>% 
+  separate(id,
+           into = c("subject_id", "csv")) %>% 
+  select(arm, subject_id, week_1:week_8) %>% 
+  pivot_longer(week_1:week_8,
+               names_to = "weeks",
+               values_to = "observations")
+
+
+
+plt =  df2 %>% 
+ filter(arm == "con", subject_id == "01") %>% 
+ ggplot(mapping = aes(x = weeks, y = observations)) +
+   geom_point()
+```
+
