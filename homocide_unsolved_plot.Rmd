@@ -78,49 +78,30 @@ results_df %>%
 files = dir(pattern = "*.csv")
 files
 ```
-df2 = 
-  tibble(
-    path = list.files("hw5_data"),
-  ) %>% 
-  mutate(path = str_c("hw5_data/", path)) %>% 
-  map(read_csv(df2$path), skip = 1)
-  
-read_csv(df2$path[[1]])
-df2 = map_df(df2$path, ~read_csv)
+
 
 ```{r}
-read_plus <- function(flnm) {
-    read_csv(flnm) %>% 
-        mutate(filename = flnm)
-}
+df2 = list.files(pattern = "*.csv") %>% 
+  set_names(.) %>% 
+  map_df(read_csv, .id = "file.ID")
 
-df2 = list.files("hw5_data", full.names = T) %>% 
-  map_df(~read_plus(.)) %>% 
-  janitor::clean_names() %>%
-  separate(filename,
-           into = c("file", "id"),
-           sep = "/") %>%
-  mutate(id = substr(id, 0, 6),
-         arm = case_when(
-    str_detect(id, "con") ~ "con",
-    str_detect(id, "exp") ~ "exp")) %>% 
-  select(arm, id, week_1:week_8) %>% 
+df2 = df2 %>% 
+  janitor::clean_names() %>% 
+  separate(file_id,
+           into = c("arm","id"),
+           sep = "_") %>% 
+  separate(id,
+           into = c("subject_id", "csv")) %>% 
+  select(arm, subject_id, week_1:week_8) %>% 
   pivot_longer(week_1:week_8,
                names_to = "weeks",
                values_to = "observations")
 
-plot_weeks = function(df) {
-  id_list = unique(df$id)
-  for (i in seq_along(id_list)) {
-    plot = ggplot(subset(df, df$id == id_list[i]),
-                  aes(x = weeks, y = observations)) +
-      geom_point() +
-      facet_wrap(~ arm) +
-      ggtitle(paste(id_list[i], "Observations through time"))
-    print(plot)
-  }
-}
 
-plt = plot_weeks(df2)
+
+plt =  df2 %>% 
+ filter(arm == "con", subject_id == "01") %>% 
+ ggplot(mapping = aes(x = weeks, y = observations)) +
+   geom_point()
 ```
 
