@@ -124,3 +124,41 @@ plot_weeks = function(df) {
 plt = plot_weeks(df2)
 ```
 
+# Question 3
+
+```{r}
+sim_mean = function(samp_size = 30, mu = 0, sigma = 5) {
+  sim_data = 
+  tibble(
+    x = rnorm(n = samp_size, mean = mu, sd = sigma)
+  )
+
+sim_data %>% 
+  summarize(
+    mean = mean(x),
+    sd = sd(x)
+  )
+}
+
+sim_mean_5000 = 
+rerun(100, sim_mean(samp_size = 30, mu = 0, sigma = 5))
+
+for(i in 1:100) {
+  output[[i]] = broom::tidy(t.test(sim_mean_5000[[i]], mu=0, conf.level = 0.05)) %>% 
+    select(estimate, p.value) %>% 
+    bind_rows(output)
+}
+
+output 
+sim_results = tibble(
+  means = c(1,2,3,4,5,6)
+) %>% 
+  mutate(output_list = map(.x = means, ~rerun(500, sim_mean(samp_size = 30, mu = .x, sigma = 5))),
+         ttests = map(output_list, t.test(x, mu = 0, conf.level = 0.05))),
+         estimate_df = map(output_list, bind_rows)) %>% 
+  select(-output_list) %>% 
+  unnest(estimate_df)
+
+```
+
+
