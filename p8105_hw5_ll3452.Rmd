@@ -96,19 +96,16 @@ df2 = list.files("hw5_data", full.names = T) %>%
                names_to = "weeks",
                values_to = "observations")
 
-plot_weeks = function(df) {
-  id_list = unique(df$id)
-  for (i in seq_along(id_list)) {
-    plot = ggplot(subset(df, df$id == id_list[i]),
-                  aes(x = weeks, y = observations)) +
-      geom_point() +
-      facet_wrap(~ arm) +
-      ggtitle(paste(id_list[i], "Observations through time"))
-    print(plot)
-  }
-}
 
-plt = plot_weeks(df2)
+plt = 
+df2 %>% 
+  ggplot(aes(x = weeks, y = observations, group = interaction(arm, id), color = arm)) +
+  geom_point() +
+  geom_line() +
+  theme_bw()
+
+plt
+
 ```
 
 
@@ -159,6 +156,8 @@ plt1 = sim_result_1 %>%
   geom_point() +
   geom_line()
 
+plt1
+
 
 sim_result_2 = sim_result %>% 
   group_by(mu) %>% 
@@ -177,9 +176,11 @@ ggplot(aes(x = mu,
   xlab("True Group Means") +
   ylab("Mean of Sample Means") +
   ggtitle("Mean of Sample Means vs. True Mean") +
-  geom_point() +
+  geom_point() + 
   geom_line() +
   theme_bw()
+
+plt2
 
 
 sim_result_3 = sim_result %>% 
@@ -201,5 +202,9 @@ plt3 = sim_result_3 %>%
   geom_line() +
   theme_bw()
 
+plt3
+
 ```
+
+Note that the difference between the "average estimate of mu vs. true mu" and the "mu in rejected samples vs. true mu" plots is largest at mu = 1. Eventually, the difference goes to 0. In the end, the means from the rejected simulation converge to the true mean. 
 
